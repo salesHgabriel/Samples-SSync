@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="PocClientSync.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:PocClientSync"
+    xmlns:views="clr-namespace:PocClientSync.Views"
+    Title="PocClientSync"
+    Shell.FlyoutBehavior="Flyout">
+
+    <FlyoutItem Title="Menu">
+
+        <Tab Title="Home">
+            <ShellContent ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
+        </Tab>
+
+        <Tab Title="User">
+
+            <ShellContent ContentTemplate="{DataTemplate views:UserPage}" Route="UserPage" />
+        </Tab>
+
+        <Tab Title="Note">
+            <ShellContent ContentTemplate="{DataTemplate views:NotePage}" Route="NotePage" />
+        </Tab>
+        
+        <Tab Title="Doc">
+            <ShellContent ContentTemplate="{DataTemplate views:DocPage}" Route="DocPage" />
+        </Tab>
+    </FlyoutItem>
+</Shell>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="PocClientSync.Views.UserPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:model="clr-namespace:PocClientSync.Models"
+    xmlns:viewModels="clr-namespace:PocClientSync.ViewModel"
+    Title="UserPage"
+    x:DataType="viewModels:UserPageViewModel">
+    <ScrollView x:Name="scrollViewUserPage">
+
+        <VerticalStackLayout Margin="10" HorizontalOptions="Center">
+            <Button
+                Margin="0,0,0,20"
+                Command="{Binding GetUsersCommand}"
+                Text="Carregar lista"
+                WidthRequest="500" />
+
+            <Entry
+                x:Name="entryName"
+                Margin="10"
+                Placeholder="Enter Name"
+                Text="{Binding Name}" />
+
+            <Entry
+                x:Name="entryAge"
+                Margin="10"
+                Keyboard="Numeric"
+                Placeholder="Enter Name"
+                Text="{Binding Age}" />
+
+            <Button
+                Margin="0,0,0,20"
+                Command="{Binding SaveCommand}"
+                Text="Create user"
+                WidthRequest="500" />
+
+            <Label
+                FontAttributes="Bold"
+                FontSize="Subtitle"
+                HorizontalOptions="Center"
+                Text="Lista de usuarios" />
+
+            <CollectionView ItemsSource="{Binding Users}" VerticalScrollBarVisibility="Always">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems SwipeBehaviorOnInvoked="Close">
+                                    <SwipeItem
+                                        BackgroundColor="Blue"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:UserPageViewModel}}, Path=UpdateCommand}"
+                                        CommandParameter="{Binding .}"
+                                        Text="Editar" />
+                                    <SwipeItem
+                                        BackgroundColor="Red"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:UserPageViewModel}}, Path=DeleteCommand}"
+                                        CommandParameter="{Binding .}"
+                                        Text="Delete" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Border
+                                Margin="10"
+                                Padding="5"
+                                BackgroundColor="White"
+                                Stroke="Black"
+                                StrokeShape="RoundRectangle 10,10,10,10"
+                                StrokeThickness="2">
+
+
+                                <VerticalStackLayout
+                                    Margin="10"
+                                    x:DataType="model:User"
+                                    Spacing="10">
+
+                                    <Label
+                                        FontAttributes="Italic"
+                                        Text="{Binding Name, StringFormat='Name: {0}'}"
+                                        VerticalOptions="End" />
+
+
+                                    <Label
+                                        FontAttributes="Italic"
+                                        Text="{Binding Age, StringFormat='Idade: {0}'}"
+                                        VerticalOptions="End" />
+
+                                    <Label
+                                        FontAttributes="Italic"
+                                        Text="{Binding Status, StringFormat='Status: {0}'}"
+                                        VerticalOptions="End" />
+
+                                    <Label
+                                        FontAttributes="Italic"
+                                        Text="{Binding CreatedAt, StringFormat='Criado: {0}'}"
+                                        VerticalOptions="End" />
+
+                                    <Label
+                                        FontAttributes="Italic"
+                                        Text="{Binding UpdatedAt, StringFormat='Atualizado: {0}'}"
+                                        VerticalOptions="End" />
+
+                                    <Label
+                                        Grid.Row="6"
+                                        FontAttributes="Italic"
+                                        Text="{Binding DeletedAt, StringFormat='Deletado: {0}'}"
+                                        VerticalOptions="End" />
+
+                                    <Button
+                                        BackgroundColor="Blue"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:UserPageViewModel}}, Path=UpdateCommand}"
+                                        CommandParameter="{Binding .}"
+                                        IsVisible="{OnPlatform Android=false,
+                                                               iOS=False,
+                                                               WinUI=True}"
+                                        Text="Editar"
+                                        VerticalOptions="End"
+                                        WidthRequest="80" />
+
+
+                                    <Button
+                                        BackgroundColor="Red"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:UserPageViewModel}}, Path=DeleteCommand}"
+                                        CommandParameter="{Binding .}"
+                                        IsVisible="{OnPlatform Android=false,
+                                                               iOS=False,
+                                                               WinUI=True}"
+                                        Text="Deletar"
+                                        VerticalOptions="End"
+                                        WidthRequest="80" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

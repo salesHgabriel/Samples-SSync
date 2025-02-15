@@ -1,0 +1,152 @@
+﻿@page "/note"
+@inject HttpClient Http
+
+<PageTitle>Notes</PageTitle>
+
+<h1>Notes</h1>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    if (usuarios != null)
+    {
+        <select class="select-element" @onchange="@OnSelectUser">
+            @foreach (var usuario in usuarios)
+            {
+                <option value="@usuario.Id">@usuario.Name</option>
+            }
+        </select>
+    }
+
+    if (userIdSelected.HasValue)
+    {
+        <button class="btn btn-primary" @onclick="((args) => CreateRandomNote(userIdSelected!.Value))">Create random Note</button>
+
+    }
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Usuario</th>
+                <th>Feito</th>
+                <th>Criado em</th>
+                <th>Atualizado em</th>
+                <th>Deletado em</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Message</td>
+                    <td>@forecast.UserId</td>
+                    <td>@forecast.Completed</td>
+                    <td>@forecast.CreatedAt.ToString()</td>
+                    <td>@forecast.UpdatedAt.ToString()</td>
+                    @if (forecast.DeletedAt != null)
+                    {
+                        <td>
+                            <div class="badge bg-danger">Deletado</div>
+                            @forecast.DeletedAt.ToString()
+                        </td>
+                    }
+                    else
+                    {
+                        <td>
+                            &nbsp;
+                        </td>
+                    }
+                       <td>
+                        <button @onclick="(async (args) => await UpdateNote(forecast))" class="btn btn-primary">Up</button>
+                        <button @onclick="(async (args) => await MarkCompleted(forecast))" class="btn btn-info">Done</button>
+                        <button @onclick="(async (args) => await DeleteNote(forecast))" class="btn btn-danger">Del</button>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+
+
+    private NoteResp[]? forecasts;
+    private UserResp[]? usuarios;
+    private Guid? userIdSelected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ListNotes();
+        await ListUsuarios();
+    }
+
+    private async Task ListNotes()
+    {
+        forecasts = await Http.GetFromJsonAsync<NoteResp[]>("api/crud/notes/list");
+    }
+
+    private async Task ListUsuarios()
+    {
+        usuarios = await Http.GetFromJsonAsync<UserResp[]>("api/crud/notes/users/list");
+    }
+
+    private void OnSelectUser(ChangeEventArgs e)
+    {
+        
+        if (e.Value != null)
+           userIdSelected = Guid.Parse(e.Value!.ToString()!);
+    }
+
+    private async Task CreateRandomNote(Guid userIdSelected)
+    {
+        await Http.PostAsync($"api/crud/notes/user/{userIdSelected}/create", new StringContent(""));
+        await ListNotes();
+    }
+
+    private async Task UpdateNote(NoteResp noteResp)
+    {
+        await Http.PutAsync($"api/crud/notes/update/{noteResp.Id}", new StringContent(""));
+        await ListNotes();
+    }
+
+    private async Task MarkCompleted(NoteResp noteResp)
+    {
+        await Http.PutAsync($"api/crud/notes/completed/{noteResp.Id}", new StringContent(""));
+        await ListNotes();
+    }
+
+
+    private async Task DeleteNote(NoteResp noteResp)
+    {
+        await Http.DeleteAsync($"api/crud/notes/delete/{noteResp.Id}");
+        await ListNotes();
+    }
+
+
+
+
+
+    public class NoteResp
+    {
+        public bool Completed { get; set; }
+        public string? Message { get; set; }
+        public Guid? UserId { get; set; }
+        public Guid Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+    }
+
+    public class UserResp
+    {
+        public string? Name { get; set; }
+        public Guid Id { get; set; }
+    }
+}
