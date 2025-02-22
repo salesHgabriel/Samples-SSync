@@ -1,96 +1,86 @@
 ﻿@page "/user"
 @inject HttpClient Http
+@inject ISnackbar Snackbar
 
 <PageTitle>Users</PageTitle>
 
-<h1>Users</h1>
+
+<MudText Typo="Typo.h3">Users</MudText>
 
 
-
-
-
-@if (forecasts == null)
+@if (users == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <button class="btn btn-primary" @onclick="CreateRandomUser">Create random user</button>
-    
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Idade</th>
-            <th>Nome</th>
-            <th>Criado em</th>
-            <th>Atualizado em</th>
-            <th>Deletado em</th>
-            <th>Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var forecast in forecasts)
-        {
-            <tr>
-                <td>@forecast.Age</td>
-                <td>@forecast.Name</td>
-                <td>@forecast.CreatedAt.ToString()</td>
-                <td>@forecast.UpdatedAt.ToString()</td>
-                @if (forecast.DeletedAt != null)
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="CreateRandomUser">Create random user</MudButton>
+
+
+    <MudTable Items="@users" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
+        <HeaderContent>
+            <MudTh>Age</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh>Updated</MudTh>
+            <MudTh>Deleted</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Age">@context.Age</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString()</MudTd>
+            <MudTd DataLabel="UpdatedAt">@context.UpdatedAt.ToString()</MudTd>
+            <MudTd DataLabel="DeletedAt">
+                @if (context.DeletedAt != null)
                 {
-                    <td>
-                        <div class="badge bg-danger">Deletado</div>
-                        @forecast.DeletedAt.ToString()
-                    </td>
+                    <MudBadge Icon="@Icons.Material.Filled.RestoreFromTrash" Color="Color.Error">
+                        <MudText>@context.DeletedAt.ToString()</MudText>
+                    </MudBadge>
                 }
                 else
                 {
-                    <td>
-                        &nbsp;
-                    </td>
+                    <b>&nbsp;</b>
                 }
-                <td>
-                    <button @onclick="(async (args) => await UpdateUser(forecast))" class="btn btn-primary">Up</button>
-                    <button @onclick="(async (args) => await DeleteUser(forecast))" class="btn btn-danger">Del</button>
-                </td>
+            </MudTd>
 
-            </tr>
-        }
-        </tbody>
-    </table>
-    
-    @if (docs == null)
-    {
-        <p><em>Carregando imagens...</em></p>
-    }
-    else
-    {
-        <div class="image-grid">
-            @if (docs != null && docs.Any())
-            {
-                @foreach (var image in docs)
-                {
-                    <div class="image-item">
-                        <img src="@image.Link" alt="@image.Name" />
-                        <p>@image.Name</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <p>Não há imagens para exibir.</p>
-            }
-        </div>      
-    }
-    
+            <MudTd DataLabel="Actions">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="(async (args) => await UpdateUser(context))">Up</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" @onclick="(async (args) => await DeleteUser(context))">Del</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
 
-    
-    
+    @if (docs != null)
+    {
+        <MudText Typo="Typo.h3">Docs uploaded</MudText>
+
+        <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+        <MudCarousel ShowArrows="ExistMoreOneItem()"
+        Style="width:100%;height:500px"
+        ShowBullets="true"
+        EnableSwipeGesture="true"
+        AutoCycle="true"
+        ItemsSource="@docs">
+            <ItemTemplate>
+                <MudImage Style="width:100%;height:500px"
+                Elevation="25"
+                ObjectFit="ObjectFit.Contain"
+                Fluid="true"
+                Src="@context.Link"
+                Alt="@context.Name"
+                Class="rounded-lg" />
+            </ItemTemplate>
+        </MudCarousel>
+
+    }
 }
 
 @code {
-    private UserResp[]? forecasts;
+    private UserResp[]? users;
     private DocResp[]? docs;
+    private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,7 +90,10 @@ else
 
     private async Task ListUsers()
     {
-        forecasts = await Http.GetFromJsonAsync<UserResp[]>("api/crud/users/list");
+        _loading = true;
+        users = await Http.GetFromJsonAsync<UserResp[]>("api/crud/users/list");
+        _loading = false;
+
     }
 
     private async Task ListDocs()
@@ -108,26 +101,29 @@ else
         docs = await Http.GetFromJsonAsync<DocResp[]>("api/crud/docs/list");
     }
 
-    
+
     private async Task CreateRandomUser()
     {
         await Http.PostAsync("api/crud/users/create", new StringContent(""));
+        Snackbar.Add("Created random user");
         await ListUsers();
     }
 
     private async Task UpdateUser(UserResp userResp)
     {
         await Http.PutAsync($"api/crud/users/update/{userResp.Id}", new StringContent(""));
+        Snackbar.Add("Updated random user");
         await ListUsers();
     }
 
     private async Task DeleteUser(UserResp userResp)
     {
         await Http.DeleteAsync($"api/crud/users/delete/{userResp.Id}");
+        Snackbar.Add("Deleted random user");
         await ListUsers();
     }
 
-
+    private bool ExistMoreOneItem() => docs != null && docs.Count() > 1;
 
 
     public class DocResp
@@ -136,7 +132,7 @@ else
         public string? Name { get; set; }
         public string Link { get; set; }
     }
-    
+
     public class UserResp
     {
         public string? Name { get; set; }
