@@ -1,124 +1,138 @@
 ﻿@page "/note"
 @inject HttpClient Http
+@inject ISnackbar Snackbar
+
 
 <PageTitle>Notes</PageTitle>
 
 <h1>Notes</h1>
 
-@if (forecasts == null)
+@if (notes == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    if (usuarios != null)
+    if (users != null)
     {
-        <select class="select-element" @onchange="@OnSelectUser">
-            @foreach (var usuario in usuarios)
+        <MudSelect
+        @bind-Value="userIdSelected"
+        Variant="Variant.Filled"
+        Label="Users"
+        Dense
+        Placeholder="Select user"
+        HelperTextOnFocus
+        Clearable>
+            @foreach (var u in users)
             {
-                <option value="@usuario.Id">@usuario.Name</option>
+                <MudSelectItem T="Guid ?" Value="u.Id">@u.Name</MudSelectItem>
             }
-        </select>
-    }
+        </MudSelect>
 
-    if (userIdSelected.HasValue)
-    {
-        <button class="btn btn-primary" @onclick="((args) => CreateRandomNote(userIdSelected!.Value))">Create random Note</button>
+        if (userIdSelected.HasValue)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="((args) => CreateRandomNote(userIdSelected!.Value))">Create random Note</MudButton>
+        }
 
-    }
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Message</th>
-                <th>Usuario</th>
-                <th>Feito</th>
-                <th>Criado em</th>
-                <th>Atualizado em</th>
-                <th>Deletado em</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Message</td>
-                    <td>@forecast.UserId</td>
-                    <td>@forecast.Completed</td>
-                    <td>@forecast.CreatedAt.ToString()</td>
-                    <td>@forecast.UpdatedAt.ToString()</td>
-                    @if (forecast.DeletedAt != null)
+        <MudTable Items="@notes" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
+            <HeaderContent>
+                <MudTh>Message</MudTh>
+                <MudTh>User</MudTh>
+                <MudTh>Completed</MudTh>
+                <MudTh>CreatedAt</MudTh>
+                <MudTh>UpdatedAt</MudTh>
+                <MudTh>DeletedAt</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Message">@context.Message</MudTd>
+                <MudTd DataLabel="UserId">@(users.FirstOrDefault(s => s.Id == context.UserId)?.Name)</MudTd>
+                <MudTd DataLabel="Completed">
+                    @if (context.Completed)
                     {
-                        <td>
-                            <div class="badge bg-danger">Deletado</div>
-                            @forecast.DeletedAt.ToString()
-                        </td>
+                        <MudIcon Icon="@Icons.Material.Filled.MarkChatRead" Color="Color.Primary" />
                     }
                     else
                     {
-                        <td>
-                            &nbsp;
-                        </td>
+                        <MudIcon Icon="@Icons.Material.Filled.Undo" Color="Color.Primary" />
                     }
-                       <td>
-                        <button @onclick="(async (args) => await UpdateNote(forecast))" class="btn btn-primary">Up</button>
-                        <button @onclick="(async (args) => await MarkCompleted(forecast))" class="btn btn-info">Done</button>
-                        <button @onclick="(async (args) => await DeleteNote(forecast))" class="btn btn-danger">Del</button>
-                    </td>
+                </MudTd>
+                <MudTd DataLabel="CreatedAt">@context.CreatedAt.ToString()</MudTd>
+                <MudTd DataLabel="UpdatedAt">@context.UpdatedAt.ToString()</MudTd>
+                <MudTd DataLabel="DeletedAt">
+                    @if (context.DeletedAt != null)
+                    {
+                        <MudBadge Icon="@Icons.Material.Filled.RestoreFromTrash" Color="Color.Error">
+                            <MudText>@context.DeletedAt.ToString()</MudText>
+                        </MudBadge>
+                    }
+                    else
+                    {
+                        <b>&nbsp;</b>
+                    }
+                </MudTd>
 
-                </tr>
-            }
-        </tbody>
-    </table>
+                <MudTd DataLabel="Actions">
+                    <MudFab Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit" @onclick="(async (args) => await UpdateNote(context))" />
+                    <MudFab Color="Color.Error" Size="Size.Small" StartIcon="@Icons.Material.Filled.Remove" @onclick="(async (args) => await DeleteNote(context))" />
+                    <MudFab Color="Color.Secondary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Done" @onclick="(async (args) => await MarkCompleted(context))" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+
+    }
 }
 
 
 @code {
 
 
-    private NoteResp[]? forecasts;
-    private UserResp[]? usuarios;
+    private NoteResp[]? notes;
+    private UserResp[]? users;
     private Guid? userIdSelected;
+    private bool _loading;
+
 
     protected override async Task OnInitializedAsync()
     {
         await ListNotes();
-        await ListUsuarios();
+        await ListUsers();
     }
 
     private async Task ListNotes()
     {
-        forecasts = await Http.GetFromJsonAsync<NoteResp[]>("api/crud/notes/list");
+        _loading = true;
+        notes = await Http.GetFromJsonAsync<NoteResp[]>("api/crud/notes/list");
+        _loading = false;
+
     }
 
-    private async Task ListUsuarios()
+    private async Task ListUsers()
     {
-        usuarios = await Http.GetFromJsonAsync<UserResp[]>("api/crud/notes/users/list");
-    }
-
-    private void OnSelectUser(ChangeEventArgs e)
-    {
-        
-        if (e.Value != null)
-           userIdSelected = Guid.Parse(e.Value!.ToString()!);
+        users = await Http.GetFromJsonAsync<UserResp[]>("api/crud/notes/users/list");
     }
 
     private async Task CreateRandomNote(Guid userIdSelected)
     {
         await Http.PostAsync($"api/crud/notes/user/{userIdSelected}/create", new StringContent(""));
+        Snackbar.Add("Created random note");
+
         await ListNotes();
     }
 
     private async Task UpdateNote(NoteResp noteResp)
     {
         await Http.PutAsync($"api/crud/notes/update/{noteResp.Id}", new StringContent(""));
+        Snackbar.Add("Updated random note");
+
         await ListNotes();
     }
 
     private async Task MarkCompleted(NoteResp noteResp)
     {
         await Http.PutAsync($"api/crud/notes/completed/{noteResp.Id}", new StringContent(""));
+        Snackbar.Add("Done random note");
+
         await ListNotes();
     }
 
@@ -126,8 +140,10 @@ else
     private async Task DeleteNote(NoteResp noteResp)
     {
         await Http.DeleteAsync($"api/crud/notes/delete/{noteResp.Id}");
+        Snackbar.Add("Delete random note");
         await ListNotes();
     }
+
 
 
 
