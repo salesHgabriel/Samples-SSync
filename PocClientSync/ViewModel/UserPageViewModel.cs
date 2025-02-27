@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using PocClientSync.Models;
 using PocClientSync.Repositories;
-using SSync.Client.LitebDB.Enums;
+using SSync.Client.SQLite.Enums;
 using System.Collections.ObjectModel;
 
 namespace PocClientSync.ViewModel
@@ -27,13 +27,12 @@ namespace PocClientSync.ViewModel
 
 
         [RelayCommand]
-        public Task GetUsersAsync()
+        public async Task GetUsersAsync()
         {
-            var users = _userRepo.GetUsers();
+            var users = await _userRepo.GetUsers();
 
             Users = new ObservableCollection<User>(users);
 
-            return Task.CompletedTask;
         }
 
         [RelayCommand]
@@ -56,7 +55,7 @@ namespace PocClientSync.ViewModel
         [RelayCommand]
         public async Task UpdateAsync(User vm)
         {
-            var userUp = _userRepo.GetBydId(vm.Id);
+            var userUp = await _userRepo.GetBydId(vm.Id);
 
 
             userUp.Name = Name ?? "updated user";
@@ -72,7 +71,7 @@ namespace PocClientSync.ViewModel
         [RelayCommand]
         public async Task DeleteAsync(User vm)
         {
-            var userUp = _userRepo.GetBydId(vm.Id);
+            var userUp = await _userRepo.GetBydId(vm.Id);
 
             await _userRepo.Delete(userUp);
 

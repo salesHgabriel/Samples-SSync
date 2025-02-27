@@ -1,51 +1,48 @@
 ﻿
-using LiteDB;
 using PocClientSync.Models;
-using SSync.Client.LitebDB.Sync;
+using SQLite;
+using SSync.Client.SQLite.Sync;
+
 
 namespace PocClientSync.Repositories
 {
     public class SyncRepository : ISyncRepository
     {
-        public string PullLocalChangesToServer(DateTime lastPulledAt)
+        public async Task<string> PullLocalChangesToServer(DateTime lastPulledAt)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
             using var sync = new Synchronize(db);
 
             var pullChangesBuilder = new SyncPullBuilder();
 
-            var last = sync!.GetLastPulledAt();
+            var last = await sync!.GetLastPulledAtAsync();
 
-            pullChangesBuilder
-                .AddPullSync(() => sync!.PullChangesResult<User>(last, User.CollectionName))
-                .AddPullSync(() => sync!.PullChangesResult<Note>(last, Note.CollectionName))
-                .AddPullSync(() => sync!.PullChangesResult<Doc>(last, Doc.CollectionName))
-                .Build();
+           await pullChangesBuilder
+                .AddPullSync(() => sync!.PullChangesResultAsync<User>(last, User.CollectionName))
+                .AddPullSync(() => sync!.PullChangesResultAsync<Note>(last, Note.CollectionName))
+                .AddPullSync(() => sync!.PullChangesResultAsync<Doc>(last, Doc.CollectionName))
+                .BuildAsync();
 
             var databaseLocal = pullChangesBuilder.DatabaseLocalChanges;
             var jsonDatabaseLocal = pullChangesBuilder.JsonDatabaseLocalChanges;
 
-            db.Dispose();
+         
 
             return jsonDatabaseLocal!;
         }
 
         //Load database server to my local
-        public Task PushServerChangesToLocal(string jsonServerChanges)
+        public async Task PushServerChangesToLocal(string jsonServerChanges)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
             using var sync = new Synchronize(db);
 
             var pushBuilder = new SyncPushBuilder(jsonServerChanges);
 
-            pushBuilder
-                .AddPushSchemaSync<User>(change => sync!.PushChangesResult(change), User.CollectionName)
-                .AddPushSchemaSync<Note>(change => sync!.PushChangesResult(change), Note.CollectionName)
-                .Build();
-
-            db.Dispose();
-
-            return Task.CompletedTask;
+            await pushBuilder
+                .AddPushSchemaSync<User>(sync!.PushChangesResultAsync, User.CollectionName)
+                .AddPushSchemaSync<Note>(sync!.PushChangesResultAsync, Note.CollectionName)
+                .BuildAsync();
         }
     }
 }

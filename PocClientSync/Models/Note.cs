@@ -1,5 +1,6 @@
-﻿using SSync.Client.LitebDB.Abstractions.Sync;
-using SSync.Client.LitebDB.Enums;
+﻿
+using SSync.Client.SQLite.Abstractions.Sync;
+using SSync.Client.SQLite.Enums;
 
 namespace PocClientSync.Models
 {

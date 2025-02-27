@@ -1,7 +1,6 @@
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
 using PocServerSync.Data;
 using PocServerSync.Models;
@@ -237,7 +236,7 @@ crudDocsGroup.MapGet("/list", (PocDbContext dbContext, IWebHostEnvironment env, 
     {
         d.Id,
         d.Name,
-        link = $"{request.Scheme}://{request.Host}/temp/uploads-ssync/{d.FileName}"
+        link = d.Path //$"{request.Scheme}://{request.Host}/temp/uploads-ssync/{d.FileName}"
     });
 });
 

@@ -1,11 +1,10 @@
-﻿using System.Net.Http.Headers;
-using System.Reflection.Metadata;
-using Flurl;
+﻿using Flurl;
 using Flurl.Http;
-using LiteDB;
 using PocClientSync.Models;
 using PocClientSync.Repositories;
-using SSync.Client.LitebDB.Sync;
+using SQLite;
+using SSync.Client.SQLite.Sync;
+using System.Net.Http.Headers;
 
 namespace PocClientSync.Services
 {
@@ -20,17 +19,17 @@ namespace PocClientSync.Services
 
         public async Task<DateTime> PushServerAsync()
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
             using var sync = new Synchronize(db);
             //get local database
-            var time = sync.GetLastPulledAt();
-            db.Dispose();
-            var localDatabaseChanges = _syncRepository.PullLocalChangesToServer(time);
+            var time = await sync.GetLastPulledAtAsync();
+
+            var localDatabaseChanges = await _syncRepository.PullLocalChangesToServer(time);
 
             Guid? userIdLogged = null; //get id user logged for example
 
             //send local database to server
-            var result = await "api.backend.com"
+            var result = await EndPoint.BaseURL
                 .AppendPathSegment("api/Sync/Push")
                 .AppendQueryParam("Collections", User.CollectionName)
                 .AppendQueryParam("Collections", Note.CollectionName)
@@ -44,7 +43,8 @@ namespace PocClientSync.Services
             var resp = await result.ResponseMessage.Content.ReadAsStringAsync();
 
             var dta = System.Text.Json.JsonSerializer.Deserialize<DateTimeOffset>(resp);
-            sync.ReplaceLastPulledAt(dta.Date);
+
+           await sync.ReplaceLastPulledAtAsync(dta.Date);
 
             return time;
         }
@@ -52,11 +52,11 @@ namespace PocClientSync.Services
         // call method after push sync data, to use same timestamp of sync data
         public async Task<List<Doc>> PushDocsToServerAsync(DateTime timestamp)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
 
             using var sync = new Synchronize(db);
 
-            var synDocs = sync!.PullChangesResult<Doc>(timestamp, Doc.CollectionName);
+            var synDocs = await sync!.PullChangesResultAsync<Doc>(timestamp, Doc.CollectionName);
 
             var allDocToUpload = new List<Doc>();
 
@@ -97,13 +97,13 @@ namespace PocClientSync.Services
             {
                 using var form = new MultipartFormDataContent();
                 
-                var fileStream = File.OpenRead(doc.Path);
+                var fileStream = File.OpenRead(doc.Path!);
                 var fileContent = new StreamContent(fileStream);
                 fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                form.Add(fileContent, "files", Path.GetFileName(doc.Path));
+                form.Add(fileContent, "files", Path.GetFileName(doc.Path)!);
                 
                 //send files to server
-                var result = await "api.backend.com"
+                var result = await EndPoint.BaseURL
                     .AppendPathSegment("api/Sync/doc-up")
                     .AppendQueryParam("DocId", doc.Id)
                     .PostMultipartAsync(mp => mp
@@ -125,12 +125,12 @@ namespace PocClientSync.Services
 
         public async Task PullServerAsync(bool all)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags); ;
             using var sync = new Synchronize(db);
 
             // get server database
-            var time = all ? DateTime.MinValue : sync.GetLastPulledAt();
-            var result = await "api.backend.com"
+            var time = all ? DateTime.MinValue : await sync.GetLastPulledAtAsync();
+            var result = await EndPoint.BaseURL
                 .AppendPathSegment("api/Sync/Pull")
                 .AppendQueryParam("Colletions", User.CollectionName)
                 .AppendQueryParam("Colletions", Note.CollectionName)
@@ -138,8 +138,6 @@ namespace PocClientSync.Services
                 .GetAsync();
 
             var res = await result.ResponseMessage.Content.ReadAsStringAsync();
-
-            db.Dispose();
 
             //update local database from server
 

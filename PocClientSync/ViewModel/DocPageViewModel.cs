@@ -1,9 +1,10 @@
 ﻿using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PocClientSync.Models;
 using PocClientSync.Repositories;
-using SSync.Client.LitebDB.Enums;
+using SSync.Client.SQLite.Enums;
 
 namespace PocClientSync.ViewModel;
 
@@ -20,9 +21,9 @@ public partial class DocPageViewModel : ObservableObject
     public ObservableCollection<Doc>? docs;
     
     [RelayCommand]
-    public void GetDocs()
+    public async Task GetDocs()
     {
-        var docs = _docRepo.GetDocs();
+        var docs = await _docRepo.GetDocs();
 
         Docs = new ObservableCollection<Doc>(docs);
     }

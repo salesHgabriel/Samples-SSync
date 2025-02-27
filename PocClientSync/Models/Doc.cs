@@ -1,6 +1,7 @@
-﻿using System.Text.Json.Serialization;
-using SSync.Client.LitebDB.Abstractions.Sync;
-using SSync.Client.LitebDB.Enums;
+﻿using SSync.Client.SQLite.Abstractions.Sync;
+using SSync.Client.SQLite.Enums;
+using System.Text.Json.Serialization;
+
 
 namespace PocClientSync.Models;
 

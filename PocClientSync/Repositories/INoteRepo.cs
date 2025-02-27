@@ -7,8 +7,8 @@ namespace PocClientSync.Repositories
     {
         Task Delete(Note entity);
         Task Drop();
-        Note GetNoteBydId(Guid id);
-        List<Note> GetNotes();
+        Task<Note> GetNoteBydId(Guid id);
+        Task<List<Note>> GetNotes();
         Task Save(Note entity);
         Task Update(Note entity);
     }

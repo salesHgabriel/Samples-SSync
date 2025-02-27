@@ -7,8 +7,8 @@ namespace PocClientSync.Repositories
     {
         Task Delete(User entity);
         Task Drop();
-        User GetBydId(Guid id);
-        List<User> GetUsers();
+        Task<User> GetBydId(Guid id);
+        Task<List<User>> GetUsers();
         Task SaveAsync(User entity);
         Task Update(User entity);
     }

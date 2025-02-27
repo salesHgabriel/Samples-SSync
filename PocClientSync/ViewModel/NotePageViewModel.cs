@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using PocClientSync.Models;
 using PocClientSync.Repositories;
-using SSync.Client.LitebDB.Enums;
+using SSync.Client.SQLite.Enums;
 using System.Collections.ObjectModel;
 
 
@@ -38,22 +38,18 @@ namespace PocClientSync.ViewModel
         [ObservableProperty]
         public string? message;
 
-        public Task GetUsersAsync()
+        public async Task GetUsersAsync()
         {
-            var users = _userRepo.GetUsers();
+            var users = await _userRepo.GetUsers();
 
             Users = new ObservableCollection<User>(users);
-
-            return Task.CompletedTask;
         }
 
-        public Task GetNotesAsync()
+        public async Task GetNotesAsync()
         {
-            var notes = _noteRepo.GetNotes();
+            var notes = await _noteRepo.GetNotes();
 
             Notes = new ObservableCollection<Note>(notes);
-
-            return Task.CompletedTask;
         }
 
         [RelayCommand]
@@ -91,7 +87,7 @@ namespace PocClientSync.ViewModel
         [RelayCommand]
         public async Task UpdateAsync(Note vm)
         {
-            var noteUp = _noteRepo.GetNoteBydId(vm.Id);
+            var noteUp = await _noteRepo.GetNoteBydId(vm.Id);
 
             noteUp.Message = "Updatedd";
             noteUp.Completed = !noteUp.Completed;
@@ -104,7 +100,7 @@ namespace PocClientSync.ViewModel
         [RelayCommand]
         public async Task DeleteAsync(Note vm)
         {
-            var note = _noteRepo.GetNoteBydId(vm.Id);
+            var note =  await _noteRepo.GetNoteBydId(vm.Id);
 
             await _noteRepo.Delete(note);
 

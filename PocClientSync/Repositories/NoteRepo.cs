@@ -1,72 +1,76 @@
-﻿using LiteDB;
-using PocClientSync.Models;
-using SSync.Client.LitebDB.Sync;
+﻿using PocClientSync.Models;
+using SQLite;
+using SSync.Client.SQLite.Sync;
 
 namespace PocClientSync.Repositories
 {
     public class NoteRepo : INoteRepo
     {
-     
-        public List<Note> GetNotes()
+        SQLiteAsyncConnection? Db;
+
+        async Task Init()
         {
-            using var db = new LiteDatabase(Database.GetPath());
-            return db!
-                .GetCollection<Note>(Note.CollectionName)
-                .FindAll()
+            if (Db is not null)
+                return;
+
+            Db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
+            var result = await Db.CreateTableAsync<Note>();
+        }
+
+        public async Task<List<Note>> GetNotes()
+        {
+            await Init();
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
+            return await db!
+                .Table<Note>()
                 .OrderByDescending(u => u.CreatedAt)
-                .ToList();
+                .ToListAsync();
         }
 
-        public Note GetNoteBydId(Guid id)
+        public async Task<Note> GetNoteBydId(Guid id)
         {
-            using var db = new LiteDatabase(Database.GetPath());
-            return db!
-                .GetCollection<Note>(Note.CollectionName)
-                .FindById(id);
+            await Init();
+
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
+            return await db!
+                .Table<Note>()
+                .FirstAsync(e => e.Id.Equals(id));
         }
 
-        public Task Save(Note entity)
+        public async Task Save(Note entity)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            await Init();
+
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
             var sync = new Synchronize(db);
-            sync!.InsertSync(entity, Note.CollectionName);
-
-            return Task.CompletedTask;
+            await sync!.InsertSyncAsync(entity);
         }
 
-        public Task Update(Note entity)
+        public async Task Update(Note entity)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            await Init();
+
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
             var sync = new Synchronize(db);
-            sync!.UpdateSync(entity, Note.CollectionName);
-
-            return Task.CompletedTask;
+            await sync!.UpdateSyncAsync(entity);
         }
 
-
-        public Task Delete(Note entity)
+        public async Task Delete(Note entity)
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            await Init();
+
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
             var sync = new Synchronize(db);
-            sync!.DeleteSync(entity, Note.CollectionName);
-
-            return Task.CompletedTask;
+            await sync!.DeleteSyncAsync(entity);
         }
 
-
-        public Task Drop()
+        public async Task Drop()
         {
-            using var db = new LiteDatabase(Database.GetPath());
+            await Init();
 
-            db!.GetCollection<Note>().DeleteAll();
-            return Task.CompletedTask;
+            var db = new SQLiteAsyncConnection(ContantsSqlite.DatabasePath, ContantsSqlite.Flags);
+
+            await db!.DeleteAllAsync<Note>();
         }
-
-
-
-
-
-
-
     }
 }

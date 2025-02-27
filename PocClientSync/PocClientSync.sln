@@ -5,8 +5,6 @@ VisualStudioVersion = 17.13.35507.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PocClientSync", "PocClientSync.csproj", "{7B95AFB3-85B7-4CDE-BD1D-3986A25D1C75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSync.Client.LitebDB", "..\ssync-litedb\src\SSync.Client.LitebDB\SSync.Client.LitebDB.csproj", "{36DE6577-6CAA-620A-37ED-3CD5BF1B5539}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,10 +17,6 @@ Global
 		{7B95AFB3-85B7-4CDE-BD1D-3986A25D1C75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B95AFB3-85B7-4CDE-BD1D-3986A25D1C75}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7B95AFB3-85B7-4CDE-BD1D-3986A25D1C75}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{36DE6577-6CAA-620A-37ED-3CD5BF1B5539}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36DE6577-6CAA-620A-37ED-3CD5BF1B5539}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36DE6577-6CAA-620A-37ED-3CD5BF1B5539}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36DE6577-6CAA-620A-37ED-3CD5BF1B5539}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
