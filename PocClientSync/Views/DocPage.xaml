@@ -1,12 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vms="clr-namespace:PocClientSync.ViewModel"
-             xmlns:models="clr-namespace:PocClientSync.Models"
-             xmlns:converters="clr-namespace:PocClientSync.Converters"
-             x:DataType="vms:DocPageViewModel"
-             x:Class="PocClientSync.Views.DocPage">
+<ContentPage
+    x:Class="PocClientSync.Views.DocPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:PocClientSync.Converters"
+    xmlns:models="clr-namespace:PocClientSync.Models"
+    xmlns:vms="clr-namespace:PocClientSync.ViewModel"
+    x:DataType="vms:DocPageViewModel">
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:FilePathToImageSourceConverter x:Key="FilePathToImageSourceConverter" />
@@ -19,11 +20,11 @@
         <Button
             Margin="0,0,0,20"
             Command="{Binding GetDocsCommand}"
-            Text="Carregar lista"
+            Text="Loag images"
             WidthRequest="500" />
 
 
-        <Button Clicked="Button_OnClicked" Text="Tirar foto" />
+        <Button Clicked="Button_OnClicked" Text="Pick Image" />
 
         <CollectionView ItemsSource="{Binding Docs}" VerticalScrollBarVisibility="Always">
             <CollectionView.ItemTemplate>
@@ -34,27 +35,28 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        
+
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Label 
-                            Margin="0"
+                        <Label
                             Grid.Row="0"
                             Grid.Column="0"
+                            Margin="0"
                             Text="{Binding FileName}" />
-                        
-                        <Image BackgroundColor="Aqua" 
-                               Grid.Column="0"
-                               Grid.Row="1"
-                               Aspect="AspectFit"
-                               MaximumHeightRequest="200"
-                               MaximumWidthRequest="200"
-                               Source="{Binding Path, Converter={StaticResource FilePathToImageSourceConverter}}" />
+
+                        <Image
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Aspect="AspectFit"
+                            BackgroundColor="Aqua"
+                            MaximumHeightRequest="200"
+                            MaximumWidthRequest="200"
+                            Source="{Binding Path, Converter={StaticResource FilePathToImageSourceConverter}}" />
                     </Grid>
 
-            
+
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
