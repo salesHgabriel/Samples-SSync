@@ -1,4 +1,5 @@
-﻿using PocClientSync.ViewModel;
+﻿using CommunityToolkit.Maui.Alerts;
+using PocClientSync.ViewModel;
 
 namespace PocClientSync.Views;
 
@@ -28,26 +29,46 @@ public partial class DocPage : ContentPage
             await Shell.Current.DisplayAlert("Error", "No Permission", "OK");
         }
 
-        if (MediaPicker.Default.IsCaptureSupported)
+        if (!MediaPicker.Default.IsCaptureSupported)
         {
-            FileResult? photo = await MediaPicker.Default.CapturePhotoAsync(new MediaPickerOptions() { Title = "Photos" });
+            return;
+        }
 
-            if (photo == null)
-            {
-                await Shell.Current.DisplayAlert("Error", "No photo", "OK");
+        FileResult? file = null;
+#if WINDOWS
 
-                return;
-            }
+        file = await FilePicker.Default.PickAsync(new PickOptions()
+        {
+            PickerTitle = "Pick images",
+            FileTypes = FilePickerFileType.Png
+        });
+#else
+        file = await MediaPicker.Default.CapturePhotoAsync(new MediaPickerOptions() { Title = "Pick images" });
+#endif
 
-            // save the file into local storage
-            string localFilePath = Path.Combine(FileSystem.CacheDirectory, photo.FileName);
+        if (file == null)
+        {
+            await Shell.Current.DisplayAlert("Error", "No file", "OK");
 
-            await using Stream sourceStream = await photo.OpenReadAsync();
-            await using FileStream localFileStream = File.OpenWrite(localFilePath);
+            return;
+        }
 
-            await sourceStream.CopyToAsync(localFileStream);
+        // save the file into local storage
+        string localFilePath = Path.Combine(FileSystem.CacheDirectory, file.FileName);
 
-            await _viewModel.SaveAsync(localFilePath, photo.FileName, photo.FileName);
+        await using Stream sourceStream = await file.OpenReadAsync();
+        await using FileStream localFileStream = File.OpenWrite(localFilePath);
+
+        await sourceStream.CopyToAsync(localFileStream);
+
+        try
+        {
+            await _viewModel.SaveAsync(localFilePath, file.FileName, file.FileName);
+           Toast.Make("Upload file");
+        }
+        catch (Exception)
+        {
+            await Shell.Current.DisplayAlert("Error", "No Save File", "OK");
         }
     }
 
